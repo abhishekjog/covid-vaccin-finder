@@ -2,15 +2,24 @@ import pandas as pd
 import json
 import requests
 import datetime
+import argparse
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--age", help="Age group : 18 or 45", type=int, choices=[18, 45], default=18)
+parser.add_argument("--pincodes", help="Comma separate list of pincodes")
+parser.add_argument("--pinrange", help="hyphen separate range of pincodes")
+parser.add_argument("--state", help="State name (first letter caps)", default="Maharashtra")
+parser.add_argument("--district", help="District name (first letter caps)", default="Pune")
+parser.add_argument("--vaccine", help="Name of the vaccine", choices=["Covaxin", "Covishield"])
+parser.add_argument("--date", help="Select from date in dd-mm-yyyy format", default=datetime.datetime.today().strftime("%d-%m-%Y"))
+args = parser.parse_args()
 
 look_for = {
-    #"PIN" : [411057, 411001, 411002, 411003, 411004, 411026],
-    "PIN" : range(411001, 412000),
-    "DATE" : datetime.datetime.today().strftime("%d-%m-%Y"),
-    #"DATE" : '04-05-2021',
-    "STATE" : "Maharashtra",
-    "DISTRICT" : "Pune",
-    "AGE" : 18
+    "PIN" : [int(x) for x in args.pincodes] if args.pincodes else range(args.pinrange('-')[0], args.pinrange('-')[1]) if args.pinrange else range(411001, 412000),
+    "DATE" : args.date,
+    "STATE" : args.state,
+    "DISTRICT" : args.district,
+    "AGE" : args.age
 }
 
 GET_STATES = "https://cdn-api.co-vin.in/api/v2/admin/location/states"
