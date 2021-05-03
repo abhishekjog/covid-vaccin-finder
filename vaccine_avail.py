@@ -15,7 +15,7 @@ parser.add_argument("--date", help="Select from date in dd-mm-yyyy format", defa
 args = parser.parse_args()
 
 look_for = {
-    "PIN" : [int(x) for x in args.pincodes] if args.pincodes and args.pincodes != "all" \
+    "PIN" : [int(x) for x in args.pincodes.split(',')] if args.pincodes and args.pincodes != "all" \
         else [] if args.pincodes == "all" \
             else range(args.pinrange('-')[0], args.pinrange('-')[1]) if args.pinrange \
                 else range(411001, 412000),
@@ -42,16 +42,16 @@ if response.ok:
         response = requests.get(GET_SLOTS.replace("districtid", str(district_id)))
 
         if response.ok:
-            df = pd.DataFrame(json.loads(response.text)["centers"])
-            df = df.explode("sessions")
-            df['min_age_limit'] = df.sessions.apply(lambda x: x['min_age_limit'])
-            df['available_capacity'] = df.sessions.apply(lambda x: x['available_capacity'])
-            df['date'] = df.sessions.apply(lambda x: x['date'])
-            df = df[["date", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
+            slots = pd.DataFrame(json.loads(response.text)["centers"])
+            slots = slots.explode("sessions")
+            slots['min_age_limit'] = slots.sessions.apply(lambda x: x['min_age_limit'])
+            slots['available_capacity'] = slots.sessions.apply(lambda x: x['available_capacity'])
+            slots['date'] = slots.sessions.apply(lambda x: x['date'])
+            slots = slots[["date", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
             if 'PIN' in look_for.keys() and len(look_for['PIN']):
-                print(df[(df['min_age_limit'] == look_for['AGE']) & (df['pincode'].isin(look_for['PIN']))].sort_values('date'))
+                print(slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN']))].sort_values('date'))
             else:
-                print(df[df['min_age_limit'] == look_for['AGE']].sort_values('date'))
+                print(slots[slots['min_age_limit'] == look_for['AGE']].sort_values('date'))
 
         else:
             print("Could not fetch slot level")
