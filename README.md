@@ -25,7 +25,7 @@ usage: vaccine_avail.py [-h] [--age {18,45}] [--pincodes PINCODES] [--pinrange P
 optional arguments:
   -h, --help            show this help message and exit
   --age {18,45}         Age group : 18 or 45
-  --pincodes PINCODES   Comma separate list of pincodes
+  --pincodes PINCODES   Comma separate list of pincodes, "all" for all pincodes in the district
   --pinrange PINRANGE   hyphen separate range of pincodes
   --state STATE         State name (first letter caps)
   --district DISTRICT   District name (first letter caps)
