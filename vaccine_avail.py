@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--age", help="Age group : 18 or 45", type=int, choices=[18, 45], default=18)
-parser.add_argument("--pincodes", help="Comma separate list of pincodes")
+parser.add_argument("--pincodes", help="Comma separate list of pincodes, \"all\" for all pincodes in the district")
 parser.add_argument("--pinrange", help="hyphen separate range of pincodes")
 parser.add_argument("--state", help="State name (first letter caps)", default="Maharashtra")
 parser.add_argument("--district", help="District name (first letter caps)", default="Pune")
@@ -15,7 +15,10 @@ parser.add_argument("--date", help="Select from date in dd-mm-yyyy format", defa
 args = parser.parse_args()
 
 look_for = {
-    "PIN" : [int(x) for x in args.pincodes] if args.pincodes else range(args.pinrange('-')[0], args.pinrange('-')[1]) if args.pinrange else range(411001, 412000),
+    "PIN" : [int(x) for x in args.pincodes] if args.pincodes and args.pincodes != "all" \
+        else [] if args.pincodes == "all" \
+            else range(args.pinrange('-')[0], args.pinrange('-')[1]) if args.pinrange \
+                else range(411001, 412000),
     "DATE" : args.date,
     "STATE" : args.state,
     "DISTRICT" : args.district,
