@@ -35,7 +35,7 @@ optional arguments:
 ```  
 
 # Future work:
-1. make command-line driven
-2. filter on vaccine (will be required for 2nd shot)
+1. filter on vaccine (will be required for 2nd shot)
+2. <raise issues if you think of anything more :)>
 
 Contributions are welcome!
