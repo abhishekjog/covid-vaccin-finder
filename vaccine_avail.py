@@ -27,7 +27,7 @@ look_for = {
 
 GET_STATES = "https://cdn-api.co-vin.in/api/v2/admin/location/states"
 GET_DISTRICTS = "https://cdn-api.co-vin.in/api/v2/admin/location/districts/"
-GET_SLOTS = "https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=districtid&date=date_val"
+GET_SLOTS = f"https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=districtid&date={look_for['DATE']}"
 
 response = requests.get(GET_STATES)
 if response.ok:
@@ -44,9 +44,7 @@ if response.ok:
             print(df.district_name.to_string(index=False)) 
             exit(1) 
         district_id = district_df.iloc[0]
-        local_get_slots = GET_SLOTS.replace("districtid", str(district_id))
-        local_get_slots = local_get_slots.replace("date_val",str(look_for['DATE']))
-        response = requests.get(local_get_slots)
+        response = requests.get(GET_SLOTS.replace("districtid", str(district_id)))
                
         if response.ok:
             slots = pd.DataFrame(json.loads(response.text)["centers"])
