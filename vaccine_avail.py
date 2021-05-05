@@ -53,18 +53,20 @@ if response.ok:
             slots['available_capacity'] = slots.sessions.apply(lambda x: x['available_capacity'])
             slots['date'] = slots.sessions.apply(lambda x: x['date'])
             slots = slots[["date", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
+            available_capacity = []
             if 'PIN' in look_for.keys() and len(look_for['PIN']):
                 print(slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN']))].sort_values('date'))
+                available_capacity = slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN'])) & (slots['available_capacity'] != 0)].sort_values('date')
             else:
                 print(slots[slots['min_age_limit'] == look_for['AGE']].sort_values('date'))
                 
                 available_capacity = slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['available_capacity'] != 0)].sort_values('date')    
-                if(available_capacity.empty):
-                    print("")
-                    print("No slots available")
-                else:
-                    print("Below are available slots")
-                    print(available_capacity)
+            if(available_capacity.empty):
+                print("")
+                print("No slots available")
+            else:
+                print("Below are available slots")
+                print(available_capacity)
         else:
             print("Could not fetch slot level")
     else:
