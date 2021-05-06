@@ -25,16 +25,17 @@ look_for = {
     "AGE" : args.age
 }
 
+headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} # This is chrome, you can set whatever browser you like
 GET_STATES = "https://cdn-api.co-vin.in/api/v2/admin/location/states"
 GET_DISTRICTS = "https://cdn-api.co-vin.in/api/v2/admin/location/districts/"
 GET_SLOTS = f"https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=districtid&date={look_for['DATE']}"
 
-response = requests.get(GET_STATES)
+response = requests.get(GET_STATES,headers=headers)
 if response.ok:
     df = pd.DataFrame(json.loads(response.text)["states"])
     state_id = (df.query(f"state_name == '{look_for['STATE']}'")["state_id"].iloc[0])
     GET_DISTRICTS += str(state_id)
-    response = requests.get(GET_DISTRICTS)
+    response = requests.get(GET_DISTRICTS,headers=headers)
 
     if response.ok:
         df = pd.DataFrame(json.loads(response.text)["districts"])
@@ -44,7 +45,7 @@ if response.ok:
             print(df.district_name.to_string(index=False)) 
             exit(1) 
         district_id = district_df.iloc[0]
-        response = requests.get(GET_SLOTS.replace("districtid", str(district_id)))
+        response = requests.get(GET_SLOTS.replace("districtid", str(district_id)),headers=headers)
                
         if response.ok:
             slots = pd.DataFrame(json.loads(response.text)["centers"])
