@@ -25,7 +25,7 @@ look_for = {
     "AGE" : args.age
 }
 
-headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} # This is chrome, you can set whatever browser you like
+headers = {'Cache-Control': 'no-cache','User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} # This is chrome, you can set whatever browser you like
 GET_STATES = "https://cdn-api.co-vin.in/api/v2/admin/location/states"
 GET_DISTRICTS = "https://cdn-api.co-vin.in/api/v2/admin/location/districts/"
 GET_SLOTS = f"https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=districtid&date={look_for['DATE']}"
