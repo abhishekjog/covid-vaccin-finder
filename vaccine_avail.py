@@ -6,7 +6,7 @@ import argparse
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--age", help="Age group : 18 or 45", type=int, choices=[18, 45], default=18)
-parser.add_argument("--pincodes", help="Comma separate list of pincodes, \"all\" for all pincodes in the district")
+parser.add_argument("--pincodes", help="Comma separate list of pincodes, \"all\" for all pincodes in the district", default="all")
 parser.add_argument("--pinrange", help="hyphen separate range of pincodes")
 parser.add_argument("--state", help="State name (first letter caps)", default="Maharashtra")
 parser.add_argument("--district", help="District name (first letter caps)", default="Pune")
@@ -25,22 +25,28 @@ look_for = {
     "AGE" : args.age
 }
 
+headers = {'Cache-Control': 'no-cache','User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} # This is chrome, you can set whatever browser you like
 GET_STATES = "https://cdn-api.co-vin.in/api/v2/admin/location/states"
 GET_DISTRICTS = "https://cdn-api.co-vin.in/api/v2/admin/location/districts/"
 GET_SLOTS = f"https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByDistrict?district_id=districtid&date={look_for['DATE']}"
 
-response = requests.get(GET_STATES)
+response = requests.get(GET_STATES,headers=headers)
 if response.ok:
     df = pd.DataFrame(json.loads(response.text)["states"])
     state_id = (df.query(f"state_name == '{look_for['STATE']}'")["state_id"].iloc[0])
     GET_DISTRICTS += str(state_id)
-    response = requests.get(GET_DISTRICTS)
+    response = requests.get(GET_DISTRICTS,headers=headers)
 
     if response.ok:
         df = pd.DataFrame(json.loads(response.text)["districts"])
-        district_id = (df.query(f"district_name == '{look_for['DISTRICT']}'")["district_id"].iloc[0])
-        response = requests.get(GET_SLOTS.replace("districtid", str(district_id)))
-
+        district_df = df.query(f"district_name == '{look_for['DISTRICT']}'")["district_id"]
+        if ( district_df.empty ):
+            print("District should be one of below")
+            print(df.district_name.to_string(index=False)) 
+            exit(1) 
+        district_id = district_df.iloc[0]
+        response = requests.get(GET_SLOTS.replace("districtid", str(district_id)),headers=headers)
+               
         if response.ok:
             slots = pd.DataFrame(json.loads(response.text)["centers"])
             slots = slots.explode("sessions")
@@ -48,16 +54,23 @@ if response.ok:
             slots['available_capacity'] = slots.sessions.apply(lambda x: x['available_capacity'])
             slots['date'] = slots.sessions.apply(lambda x: x['date'])
             slots = slots[["date", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
+            available_capacity = []
             if 'PIN' in look_for.keys() and len(look_for['PIN']):
                 print(slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN']))].sort_values('date'))
+                available_capacity = slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN'])) & (slots['available_capacity'] != 0)].sort_values('date')
             else:
                 print(slots[slots['min_age_limit'] == look_for['AGE']].sort_values('date'))
-
+                
+                available_capacity = slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['available_capacity'] != 0)].sort_values('date')    
+            if(available_capacity.empty):
+                print("")
+                print("No slots available")
+            else:
+                print("Below are available slots")
+                print(available_capacity)
         else:
             print("Could not fetch slot level")
-
     else:
         print("Could not fetch district level")
-
 else:
     print("Could not fetch state level")
