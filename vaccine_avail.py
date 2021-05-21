@@ -10,8 +10,9 @@ parser.add_argument("--pincodes", help="Comma separate list of pincodes, \"all\"
 parser.add_argument("--pinrange", help="hyphen separate range of pincodes")
 parser.add_argument("--state", help="State name (first letter caps)", default="Maharashtra")
 parser.add_argument("--district", help="District name (first letter caps)", default="Pune")
-parser.add_argument("--vaccine", help="Name of the vaccine", choices=["Covaxin", "Covishield"])
+parser.add_argument("--vaccine", help="Name of the vaccine", choices=["COVAXINE", "COVISHIELD", "SPUTNIK"])
 parser.add_argument("--date", help="Select from date in dd-mm-yyyy format", default=datetime.datetime.today().strftime("%d-%m-%Y"))
+parser.add_argument("--dose", help="Dose number 1 or 2", type=int, choices=[1, 2], default=1)
 args = parser.parse_args()
 
 look_for = {
@@ -22,7 +23,8 @@ look_for = {
     "DATE" : args.date,
     "STATE" : args.state,
     "DISTRICT" : args.district,
-    "AGE" : args.age
+    "AGE" : args.age,
+    "DOSE" : f"{args.dose}"
 }
 
 headers = {'Cache-Control': 'no-cache','User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/56.0.2924.76 Safari/537.36'} # This is chrome, you can set whatever browser you like
@@ -51,9 +53,10 @@ if response.ok:
             slots = pd.DataFrame(json.loads(response.text)["centers"])
             slots = slots.explode("sessions")
             slots['min_age_limit'] = slots.sessions.apply(lambda x: x['min_age_limit'])
-            slots['available_capacity'] = slots.sessions.apply(lambda x: x['available_capacity'])
+            slots['available_capacity'] = slots.sessions.apply(lambda x: x[f"available_capacity_dose{look_for['DOSE']}"])
             slots['date'] = slots.sessions.apply(lambda x: x['date'])
-            slots = slots[["date", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
+            slots['vaccine'] = slots.sessions.apply(lambda x: x['vaccine'])
+            slots = slots[["date", "vaccine", "available_capacity", "min_age_limit", "pincode", "name", "state_name", "district_name", "block_name", "fee_type"]]
             available_capacity = []
             if 'PIN' in look_for.keys() and len(look_for['PIN']):
                 print(slots[(slots['min_age_limit'] == look_for['AGE']) & (slots['pincode'].isin(look_for['PIN']))].sort_values('date'))
